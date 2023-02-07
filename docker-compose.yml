@@ -1,1 +1,29 @@
-#test 
+version: '3.6'
+services:
+  zabbix-proxy:
+    hostname: zabbix-proxy:6.2-alpine-latest
+    container_name: zabbix-proxy
+    image: zabbix/zabbix-proxy-sqlite3:alpine-latest
+    ports:
+      - 10051:10051
+    env_file: /opt/99-common-file/zabbix-proxy.env
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /opt/99-common-file/key/:/var/lib/zabbix/enc/:ro
+      - /opt/99-common-file/db:/var/lib/zabbix/db_data/:rw
+      - /usr/share/snmp/:/var/lib/zabbix/mibs/:rw
+    stop_grace_period: 1m
+    restart: always
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:alpine-latest
+    hostname: zabbix-agent
+    container_name: zabbix-agent
+    ports:
+      - 10050:10050
+    env_file: /opt/99-common-file/zabbix-agent.env
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    privileged: true
+    depends_on:
+      - zabbix-proxy
